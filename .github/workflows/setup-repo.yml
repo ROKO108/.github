@@ -22,9 +22,8 @@ jobs:
 
       - name: 🔧 Crear .github/workflows/ci.yml
         run: |
-          CONTENT=$(base64 -w 0 .github/workflows/universal-ci.yml)
-          
-          # Comprueba si el archivo ya existe
+          CONTENT=$(base64 -w 0 .github/workflows/ci.yml)
+
           STATUS=$(gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.github/workflows/ci.yml \
             --silent --include 2>&1 | head -1 | awk '{print $2}')
 
@@ -40,25 +39,31 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
-      - name: 🔧 Crear .gitignore
+      - name: 🌍 Generar .gitignore universal desde gitignore.io
         run: |
-          CONTENT=$(base64 -w 0 .gitignore 2>/dev/null || echo "")
+          # Descarga el .gitignore más completo combinando todos los lenguajes y entornos
+          curl -sL "https://www.toptal.com/developers/gitignore/api/python,node,javascript,typescript,java,kotlin,go,rust,php,ruby,swift,dart,c,c++,scala,r,terraform,docker,visualstudiocode,intellij,xcode,macos,windows,linux" \
+            -o .gitignore_generated
 
-          if [ -z "$CONTENT" ]; then
-            echo "⚠️ No hay .gitignore en la template, saltando..."
+          # Añade sección de MegaLinter al final
+          echo "" >> .gitignore_generated
+          echo "# ── MegaLinter ────────────────────────────────────────────" >> .gitignore_generated
+          echo "megalinter-reports/" >> .gitignore_generated
+          echo "mega-linter.log" >> .gitignore_generated
+
+          CONTENT=$(base64 -w 0 .gitignore_generated)
+
+          STATUS=$(gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.gitignore \
+            --silent --include 2>&1 | head -1 | awk '{print $2}')
+
+          if [ "$STATUS" = "200" ]; then
+            echo "⚠️ .gitignore ya existe en ${{ inputs.repo_name }}, saltando..."
           else
-            STATUS=$(gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.gitignore \
-              --silent --include 2>&1 | head -1 | awk '{print $2}')
-
-            if [ "$STATUS" = "200" ]; then
-              echo "⚠️ .gitignore ya existe en ${{ inputs.repo_name }}, saltando..."
-            else
-              gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.gitignore \
-                --method PUT \
-                --field message="chore: setup .gitignore" \
-                --field content="$CONTENT"
-              echo "✅ .gitignore creado en ${{ inputs.repo_name }}"
-            fi
+            gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.gitignore \
+              --method PUT \
+              --field message="chore: setup .gitignore universal" \
+              --field content="$CONTENT"
+            echo "✅ .gitignore creado en ${{ inputs.repo_name }}"
           fi
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -71,4 +76,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Archivos creados:**" >> $GITHUB_STEP_SUMMARY
           echo "- \`.github/workflows/ci.yml\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`.gitignore\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`.gitignore\` (generado desde gitignore.io)" >> $GITHUB_STEP_SUMMARY
