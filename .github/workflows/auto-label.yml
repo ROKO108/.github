@@ -6,7 +6,6 @@ on:
   issues:
     types: [opened, reopened]
 
-# Permisos globales restrictivos (los jobs sobreescriben lo que necesiten)
 permissions:
   contents: read
 
@@ -19,7 +18,7 @@ jobs:
       pull-requests: write
     steps:
       - name: 🏷️ Label por archivos cambiados
-        uses: actions/labeler@v5
+        uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
@@ -32,7 +31,7 @@ jobs:
       pull-requests: write
     steps:
       - name: 📏 Label por tamaño
-        uses: codelytv/pr-size-labeler@v1
+        uses: codelytv/pr-size-labeler@0b7f116f59d1830881bc1cc88be32b005ab09ffa # v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_label: "size: XS"
@@ -54,7 +53,7 @@ jobs:
       issues: write
     steps:
       - name: 🤖 Label automático por contenido
-        uses: github/issue-labeler@v3.4
+        uses: github/issue-labeler@c1b0f9f52a63158c4adc09425e858e87b32e9685 # v3.4
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/issue-labeler.yml

@@ -37,7 +37,7 @@ on:
 # Permisos globales restrictivos (los jobs sobreescriben lo que necesiten)
 permissions:
   contents: read
-  
+
 # Cancela runs anteriores del mismo PR/rama (ahorra minutos)
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -65,7 +65,7 @@ jobs:
     steps:
       # 1. Checkout con historial completo
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
           # Usa un token con permisos para que los commits del bot
@@ -74,14 +74,14 @@ jobs:
           
       # ── Caché de Docker para acelerar MegaLinter ──────────
       - name: 🐳 Cache Docker images
-        uses: ScribeMD/docker-cache@0.5.0
+        uses: ScribeMD/docker-cache@fb28c93772363301b8d0a6072ce850224b73f74e # 0.5.0
         with:
           key: docker-${{ runner.os }}-megalinter-v7
 
       # 2. MegaLinter — el núcleo del workflow
       - name: 🧹 MegaLinter
         id: ml
-        uses: oxsecurity/megalinter@v7
+        uses: oxsecurity/megalinter@bacb5f8674e3730b904ca4d20c8bd477bc51b1a7 # v7
         env:
           # ── Qué analizar ──────────────────────────────────
           VALIDATE_ALL_CODEBASE: ${{ inputs.validate_all || false }}
@@ -106,7 +106,7 @@ jobs:
       # 3. Guarda los reportes como artefacto descargable
       - name: 📊 Guardar reportes
         if: always() # Siempre, aunque falle el linter
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: megalinter-reports-${{ github.run_number }}
           path: |
@@ -119,7 +119,7 @@ jobs:
         if: |
           steps.ml.outputs.has_updated_sources == 'true' &&
           github.event_name == 'pull_request'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: auto-fix linting and formatting"
