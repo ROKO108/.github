@@ -85,7 +85,7 @@ jobs:
         env:
           # ── Qué analizar ──────────────────────────────────
           VALIDATE_ALL_CODEBASE: ${{ inputs.validate_all || false }}
-          DISABLE: ${{ inputs.disable_linters || '' }}
+          DISABLE_LINTERS: ${{ inputs.disable_linters || '' }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
           # ── Auto-fix ──────────────────────────────────────
