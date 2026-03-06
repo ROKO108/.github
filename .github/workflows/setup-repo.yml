@@ -7,6 +7,11 @@ on:
         description: "Nombre del repo a configurar"
         required: true
         type: string
+      disable_linters:
+        description: "Linters a desactivar. Ej: PYTHON_MYPY,PYTHON_PYRIGHT,SPELL_CSPELL"
+        required: false
+        type: string
+        default: "PYTHON_MYPY,PYTHON_PYRIGHT,SPELL_CSPELL"
 
 permissions:
   contents: read
@@ -17,12 +22,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
       - name: 🔧 Crear .github/workflows/ci.yml
         run: |
-          CONTENT=$(base64 -w 0 .github/workflows/ci.yml)
+          CI_CONTENT=$(cat << 'EOF'
+          name: 🛡️ CI
+
+          on:
+            push:
+              branches: [main, master, develop]
+            pull_request:
+              branches: [main, master, develop]
+
+          permissions:
+            contents: write
+            pull-requests: write
+            issues: write
+            statuses: write
+
+          jobs:
+            ci:
+              uses: ROKO108/.github/.github/workflows/universal-ci.yml@main
+              with:
+                validate_all: false
+                disable_linters: "DISABLE_LINTERS_PLACEHOLDER"
+              secrets: inherit
+          EOF
+          )
+
+          # Sustituye el placeholder con el valor del input
+          CI_CONTENT="${CI_CONTENT//DISABLE_LINTERS_PLACEHOLDER/${{ inputs.disable_linters }}}"
+
+          CONTENT=$(echo "$CI_CONTENT" | base64 -w 0)
 
           STATUS=$(gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.github/workflows/ci.yml \
             --silent --include 2>&1 | head -1 | awk '{print $2}')
@@ -41,11 +71,9 @@ jobs:
 
       - name: 🌍 Generar .gitignore universal desde gitignore.io
         run: |
-          # Descarga el .gitignore más completo combinando todos los lenguajes y entornos
           curl -sL "https://www.toptal.com/developers/gitignore/api/python,node,javascript,typescript,java,kotlin,go,rust,php,ruby,swift,dart,c,c++,scala,r,terraform,docker,visualstudiocode,intellij,xcode,macos,windows,linux" \
             -o .gitignore_generated
 
-          # Añade sección de MegaLinter al final
           echo "" >> .gitignore_generated
           echo "# ── MegaLinter ────────────────────────────────────────────" >> .gitignore_generated
           echo "megalinter-reports/" >> .gitignore_generated
@@ -73,6 +101,7 @@ jobs:
           echo "## 🚀 Setup completado" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Repo:** \`ROKO108/${{ inputs.repo_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Linters desactivados:** \`${{ inputs.disable_linters }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Archivos creados:**" >> $GITHUB_STEP_SUMMARY
           echo "- \`.github/workflows/ci.yml\`" >> $GITHUB_STEP_SUMMARY
