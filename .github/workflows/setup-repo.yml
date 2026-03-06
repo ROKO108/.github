@@ -1,0 +1,74 @@
+name: 🚀 Setup nuevo repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_name:
+        description: "Nombre del repo a configurar"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    name: ⚙️ Configurar repo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: 🔧 Crear .github/workflows/ci.yml
+        run: |
+          CONTENT=$(base64 -w 0 .github/workflows/universal-ci.yml)
+          
+          # Comprueba si el archivo ya existe
+          STATUS=$(gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.github/workflows/ci.yml \
+            --silent --include 2>&1 | head -1 | awk '{print $2}')
+
+          if [ "$STATUS" = "200" ]; then
+            echo "⚠️ ci.yml ya existe en ${{ inputs.repo_name }}, saltando..."
+          else
+            gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.github/workflows/ci.yml \
+              --method PUT \
+              --field message="chore: setup CI automático" \
+              --field content="$CONTENT"
+            echo "✅ ci.yml creado en ${{ inputs.repo_name }}"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: 🔧 Crear .gitignore
+        run: |
+          CONTENT=$(base64 -w 0 .gitignore 2>/dev/null || echo "")
+
+          if [ -z "$CONTENT" ]; then
+            echo "⚠️ No hay .gitignore en la template, saltando..."
+          else
+            STATUS=$(gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.gitignore \
+              --silent --include 2>&1 | head -1 | awk '{print $2}')
+
+            if [ "$STATUS" = "200" ]; then
+              echo "⚠️ .gitignore ya existe en ${{ inputs.repo_name }}, saltando..."
+            else
+              gh api repos/ROKO108/${{ inputs.repo_name }}/contents/.gitignore \
+                --method PUT \
+                --field message="chore: setup .gitignore" \
+                --field content="$CONTENT"
+              echo "✅ .gitignore creado en ${{ inputs.repo_name }}"
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: 📋 Resumen
+        run: |
+          echo "## 🚀 Setup completado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repo:** \`ROKO108/${{ inputs.repo_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Archivos creados:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`.github/workflows/ci.yml\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`.gitignore\`" >> $GITHUB_STEP_SUMMARY
