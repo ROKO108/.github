@@ -1,0 +1,167 @@
+# ============================================================
+# 🛡️ UNIVERSAL CI GUARD — Versión Definitiva
+# ============================================================
+# Compatible con: JS/TS, Python, Java, Go, Rust, PHP, Ruby,
+#                 C/C++, Shell, SQL, YAML, JSON, Markdown...
+# Funciones:
+#   ✅ Linting automático de +70 lenguajes
+#   ✅ Auto-fix con PR separado (sin bucles)
+#   ✅ Reportes guardados como artefactos
+#   ✅ Comentario automático en el PR con el resumen
+#   ✅ Falla el CI si hay errores no corregibles
+#   ✅ Seguro: permisos mínimos por job
+# ============================================================
+
+name: 🛡️ Universal CI Guard
+
+on:
+  # ── Llamada desde otros repos ─────────────────────────────
+  workflow_call:
+    inputs:
+      validate_all:
+        description: "Analizar todo el codebase (true) o solo cambios (false)"
+        required: false
+        type: boolean
+        default: false
+      disable_linters:
+        description: "Linters a desactivar, separados por coma. Ej: SPELL,COPYPASTE"
+        required: false
+        type: string
+        default: ""
+  # ── Ejecución directa (en este mismo repo) ────────────────
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+
+# Cancela runs anteriores del mismo PR/rama (ahorra minutos)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1: Lint & Auto-Fix
+  # ─────────────────────────────────────────────
+  lint:
+    name: 🔍 Lint & Format
+    runs-on: ubuntu-latest
+
+    # Evita el bucle infinito cuando el bot sube sus propias correcciones
+    if: |
+      github.head_ref != 'megalinter-fixes' &&
+      !contains(github.event.head_commit.message, 'chore: auto-fix')
+
+    permissions:
+      contents: write        # Para subir correcciones
+      pull-requests: write   # Para comentar en PRs
+      statuses: write        # Para actualizar el estado del commit
+      issues: write          # Para crear comentarios
+
+    steps:
+      # 1. Checkout con historial completo
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Usa un token con permisos para que los commits del bot
+          # disparen otros workflows si lo necesitas
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      # ── Caché de Docker para acelerar MegaLinter ──────────
+      - name: 🐳 Cache Docker images
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: docker-${{ runner.os }}-megalinter-v7
+
+      # 2. MegaLinter — el núcleo del workflow
+      - name: 🧹 MegaLinter
+        id: ml
+        uses: oxsecurity/megalinter@v7
+        env:
+          # ── Qué analizar ──────────────────────────────────
+          VALIDATE_ALL_CODEBASE: ${{ inputs.validate_all || false }}
+          DISABLE: ${{ inputs.disable_linters || '' }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+          # ── Auto-fix ──────────────────────────────────────
+          APPLY_FIXES: all               # Corrige todo lo que pueda
+          APPLY_FIXES_MODE: pull_request # Abre un PR en vez de hacer push directo
+
+          # ── Reportes ──────────────────────────────────────
+          REPORTERS: "githubCommentReporter,consoleLintReporter"
+          # ^ Comenta en el PR + muestra en consola
+
+          # ── Comportamiento ────────────────────────────────
+          DISABLE_ERRORS: false          # Falla el CI si hay errores reales
+          SHOW_ELAPSED_TIME: true        # Muestra cuánto tarda cada linter
+          FILEIO_REPORTER: false         # No sube reportes a file.io
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Guarda los reportes como artefacto descargable
+      - name: 📊 Guardar reportes
+        if: always() # Siempre, aunque falle el linter
+        uses: actions/upload-artifact@v4
+        with:
+          name: megalinter-reports-${{ github.run_number }}
+          path: |
+            megalinter-reports/
+            mega-linter.log
+          retention-days: 14  # Los borra automáticamente tras 2 semanas
+
+      # 4. Abre un PR con las correcciones automáticas
+      - name: 🤖 PR con correcciones automáticas
+        if: |
+          steps.ml.outputs.has_updated_sources == 'true' &&
+          github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: auto-fix linting and formatting"
+          title: "🤖 Auto-fix: Linting y Formateo [skip ci]"
+          body: |
+            ## 🤖 Correcciones automáticas de MegaLinter
+
+            He detectado y corregido automáticamente los siguientes problemas:
+
+            - Formateo de código
+            - Problemas de estilo
+            - Errores menores de sintaxis
+
+            > ⚠️ Revisa los cambios antes de hacer merge.
+            > Los errores que no se pudieron corregir aparecen en los reportes adjuntos.
+
+            **Run:** ${{ github.run_id }}
+          branch: megalinter-fixes
+          delete-branch: true           # Limpia la rama cuando se cierre el PR
+          labels: |
+            🤖 auto-fix
+            linting
+
+  # ─────────────────────────────────────────────
+  # JOB 2: Resumen final (siempre visible)
+  # ─────────────────────────────────────────────
+  summary:
+    name: 📋 Resumen
+    runs-on: ubuntu-latest
+    needs: lint
+    if: always()
+
+    steps:
+      - name: ✅ Resultado
+        run: |
+          echo "## 🛡️ Universal CI Guard" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.lint.result }}" == "success" ]; then
+            echo "### ✅ Todo correcto — sin errores detectados" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.lint.result }}" == "failure" ]; then
+            echo "### ❌ Se encontraron errores — revisa los reportes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ El job fue cancelado o saltado" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** \`${{ github.workflow }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Rama:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
