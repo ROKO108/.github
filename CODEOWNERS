@@ -1,0 +1,12 @@
+# CODEOWNERS — Define quién revisa cada parte del código
+# Documentación: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Por defecto, ROKO108 revisa todo
+* @ROKO108
+
+# Áreas específicas
+*.py          @ROKO108
+*.yml         @ROKO108
+*.yaml        @ROKO108
+docs/         @ROKO108
+.github/      @ROKO108

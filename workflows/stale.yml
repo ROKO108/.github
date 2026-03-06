@@ -1,0 +1,48 @@
+name: 🕸️ Stale Bot
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Cada lunes a las 9:00 UTC
+  workflow_dispatch:    # También ejecutable manualmente
+
+jobs:
+  stale:
+    name: Limpiar issues y PRs abandonados
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: 🕸️ Marcar como stale
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # ── Issues ───────────────────────────────────────
+          days-before-issue-stale: 30
+          days-before-issue-close: 14
+          stale-issue-label: "stale"
+          stale-issue-message: |
+            👋 Este issue lleva 30 días sin actividad.
+            Lo marcaré como inactivo. Si sigue siendo relevante,
+            deja un comentario y lo reactivo encantado.
+          close-issue-message: |
+            🔒 Cerrando por inactividad. Si necesitas retomarlo,
+            abre uno nuevo o mencióname. ¡Gracias por contribuir!
+
+          # ── Pull Requests ─────────────────────────────────
+          days-before-pr-stale: 14
+          days-before-pr-close: 7
+          stale-pr-label: "stale"
+          stale-pr-message: |
+            👋 Este PR lleva 14 días sin actividad.
+            Si sigues trabajando en él, deja un comentario.
+          close-pr-message: |
+            🔒 Cerrando PR por inactividad.
+            Puedes reabrirlo cuando estés listo. 💪
+
+          # ── Excepciones ───────────────────────────────────
+          exempt-issue-labels: "pinned,security,in-progress,help wanted"
+          exempt-pr-labels: "pinned,security,in-progress,work-in-progress"
+          exempt-all-milestones: true

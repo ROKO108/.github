@@ -1,0 +1,50 @@
+# Etiquetas automáticas según archivos cambiados en el PR
+
+"🐍 python":
+  - changed-files:
+    - any-glob-to-any-file: "**/*.py"
+
+"📚 documentation":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/*.md"
+      - "**/*.rst"
+      - "docs/**"
+
+"🔧 ci/cd":
+  - changed-files:
+    - any-glob-to-any-file:
+      - ".github/**"
+      - "*.yml"
+      - "*.yaml"
+
+"📦 dependencies":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - "setup.py"
+      - "setup.cfg"
+      - "Pipfile"
+      - "poetry.lock"
+
+"🧪 tests":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "tests/**"
+      - "test_*.py"
+      - "*_test.py"
+
+"🐳 docker":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "Dockerfile*"
+      - "docker-compose*.yml"
+
+"⚙️ config":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "*.toml"
+      - "*.cfg"
+      - "*.ini"
+      - ".env*"

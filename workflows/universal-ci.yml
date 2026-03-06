@@ -15,10 +15,25 @@
 name: 🛡️ Universal CI Guard
 
 on:
+  # ── Llamada desde otros repos ─────────────────────────────
+  workflow_call:
+    inputs:
+      validate_all:
+        description: "Analizar todo el codebase (true) o solo cambios (false)"
+        required: false
+        type: boolean
+        default: false
+      disable_linters:
+        description: "Linters a desactivar, separados por coma. Ej: SPELL,COPYPASTE"
+        required: false
+        type: string
+        default: ""
+  # ── Ejecución directa (en este mismo repo) ────────────────
   push:
     branches: [main, master, develop]
   pull_request:
     branches: [main, master, develop]
+
 
 # Cancela runs anteriores del mismo PR/rama (ahorra minutos)
 concurrency:
@@ -60,7 +75,8 @@ jobs:
         uses: oxsecurity/megalinter@v7
         env:
           # ── Qué analizar ──────────────────────────────────
-          VALIDATE_ALL_CODEBASE: false   # Solo archivos cambiados (rápido)
+          VALIDATE_ALL_CODEBASE: ${{ inputs.validate_all || false }}
+          DISABLE: ${{ inputs.disable_linters || '' }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
           # ── Auto-fix ──────────────────────────────────────
@@ -68,18 +84,13 @@ jobs:
           APPLY_FIXES_MODE: pull_request # Abre un PR en vez de hacer push directo
 
           # ── Reportes ──────────────────────────────────────
-          REPORTERS: ["githubCommentReporter", "consoleLintReporter"]
+          REPORTERS: "githubCommentReporter,consoleLintReporter"
           # ^ Comenta en el PR + muestra en consola
 
           # ── Comportamiento ────────────────────────────────
           DISABLE_ERRORS: false          # Falla el CI si hay errores reales
           SHOW_ELAPSED_TIME: true        # Muestra cuánto tarda cada linter
           FILEIO_REPORTER: false         # No sube reportes a file.io
-
-          # ── Linters opcionales (descomenta para desactivar) ─
-          # DISABLE: SPELL                # Desactiva corrector ortográfico
-          # DISABLE: COPYPASTE            # Desactiva detector de copy-paste
-          # DISABLE: REPOSITORY           # Desactiva checks de repo (trivy, etc.)
 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

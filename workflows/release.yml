@@ -1,0 +1,52 @@
+name: 🚀 Release Automático
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Dispara con tags tipo v1.0.0, v2.3.1...
+
+jobs:
+  release:
+    name: Crear Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: 📦 Build (si aplica)
+        run: |
+          if [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
+            pip install build --break-system-packages 2>/dev/null || pip install build
+            python -m build
+          else
+            echo "No build step needed"
+          fi
+
+      - name: 📝 Generar Changelog automático
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+
+      - name: 🚀 Crear GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
+          body: ${{ steps.changelog.outputs.changes }}
+          artifacts: "dist/*"
+          allowUpdates: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}

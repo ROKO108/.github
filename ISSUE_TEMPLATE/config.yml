@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Preguntas generales
+    url: https://github.com/ROKO108?tab=discussions
+    about: Para dudas y preguntas usa las Discussions
+  - name: 🔒 Vulnerabilidades de seguridad
+    url: https://github.com/ROKO108/.github/blob/main/SECURITY.md
+    about: Por favor, lee la política de seguridad antes de reportar

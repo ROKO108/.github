@@ -1,0 +1,17 @@
+"bug":
+  - ["bug", "error", "fallo", "roto", "broken", "crash", "exception", "traceback"]
+
+"enhancement":
+  - ["feature", "mejora", "añadir", "agregar", "nuevo", "new", "propuesta", "suggestion"]
+
+"documentation":
+  - ["docs", "documentación", "readme", "wiki", "ejemplo", "example"]
+
+"question":
+  - ["pregunta", "duda", "question", "cómo", "how", "ayuda", "help"]
+
+"performance":
+  - ["lento", "slow", "performance", "optimizar", "memory", "memoria", "speed"]
+
+"security":
+  - ["security", "seguridad", "vulnerabilidad", "vulnerability", "CVE"]
