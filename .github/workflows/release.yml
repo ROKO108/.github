@@ -5,6 +5,10 @@ on:
     tags:
       - "v*.*.*" # Dispara con tags tipo v1.0.0, v2.3.1...
 
+# Permisos globales restrictivos (los jobs sobreescriben lo que necesiten)
+permissions:
+  contents: read
+  
 jobs:
   release:
     name: Crear Release

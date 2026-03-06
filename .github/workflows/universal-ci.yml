@@ -34,7 +34,10 @@ on:
   pull_request:
     branches: [main, master, develop]
 
-
+# Permisos globales restrictivos (los jobs sobreescriben lo que necesiten)
+permissions:
+  contents: read
+  
 # Cancela runs anteriores del mismo PR/rama (ahorra minutos)
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

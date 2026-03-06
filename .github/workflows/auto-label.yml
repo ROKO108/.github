@@ -6,6 +6,10 @@ on:
   issues:
     types: [opened, reopened]
 
+# Permisos globales restrictivos (los jobs sobreescriben lo que necesiten)
+permissions:
+  contents: read
+
 jobs:
   label-pr:
     name: Etiquetar PR
