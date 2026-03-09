@@ -57,10 +57,10 @@ jobs:
       !contains(github.event.head_commit.message, 'chore: auto-fix')
 
     permissions:
-      contents: write        # Para subir correcciones
-      pull-requests: write   # Para comentar en PRs
-      statuses: write        # Para actualizar el estado del commit
-      issues: write          # Para crear comentarios
+      contents: write # Para subir correcciones
+      pull-requests: write # Para comentar en PRs
+      statuses: write # Para actualizar el estado del commit
+      issues: write # Para crear comentarios
 
     steps:
       # 1. Checkout con historial completo
@@ -71,7 +71,7 @@ jobs:
           # Usa un token con permisos para que los commits del bot
           # disparen otros workflows si lo necesitas
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       # ── Caché de Docker para acelerar MegaLinter ──────────
       - name: 🐳 Cache Docker images
         continue-on-error: true
@@ -90,7 +90,7 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
           # ── Auto-fix ──────────────────────────────────────
-          APPLY_FIXES: all               # Corrige todo lo que pueda
+          APPLY_FIXES: all # Corrige todo lo que pueda
           APPLY_FIXES_MODE: pull_request # Abre un PR en vez de hacer push directo
 
           # ── Reportes ──────────────────────────────────────
@@ -98,9 +98,9 @@ jobs:
           # ^ Comenta en el PR + muestra en consola
 
           # ── Comportamiento ────────────────────────────────
-          DISABLE_ERRORS: false          # Falla el CI si hay errores reales
-          SHOW_ELAPSED_TIME: true        # Muestra cuánto tarda cada linter
-          FILEIO_REPORTER: false         # No sube reportes a file.io
+          DISABLE_ERRORS: false # Falla el CI si hay errores reales
+          SHOW_ELAPSED_TIME: true # Muestra cuánto tarda cada linter
+          FILEIO_REPORTER: false # No sube reportes a file.io
 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -113,7 +113,7 @@ jobs:
           path: |
             megalinter-reports/
             mega-linter.log
-          retention-days: 14  # Los borra automáticamente tras 2 semanas
+          retention-days: 14 # Los borra automáticamente tras 2 semanas
 
       # 4. Abre un PR con las correcciones automáticas
       - name: 🤖 PR con correcciones automáticas
@@ -139,7 +139,7 @@ jobs:
 
             **Run:** ${{ github.run_id }}
           branch: megalinter-fixes
-          delete-branch: true           # Limpia la rama cuando se cierre el PR
+          delete-branch: true # Limpia la rama cuando se cierre el PR
           labels: |
             🤖 auto-fix
             linting
