@@ -1,5 +1,5 @@
 name: 🚀 Setup nuevo repo
-
+# checkov:skip=CKV_GHA_7: workflow administrativo requiere workflow_dispatch inputs
 on:
   workflow_dispatch:
     inputs:
