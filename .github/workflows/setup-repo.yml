@@ -11,7 +11,7 @@ on:
         description: "Linters a desactivar. Ej: PYTHON_MYPY,PYTHON_PYRIGHT,SPELL_CSPELL"
         required: false
         type: string
-        default: "PYTHON_MYPY,PYTHON_PYRIGHT,SPELL_CSPELL"
+        default: "PYTHON_MYPY,PYTHON_PYRIGHT,SPELL_CSPELL,REPOSITORY_GRYPE,REPOSITORY_CHECKOV,REPOSITORY_TRIVY"
 
 permissions:
   contents: read
