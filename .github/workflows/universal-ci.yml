@@ -63,9 +63,6 @@ jobs:
       issues: write # Para crear comentarios
 
     steps:
-      # 0. Verifica que Docker esté disponible (requisito para MegaLinter)
-      - name: 🐳 Iniciar Docker
-        run: docker info
       # 1. Checkout con historial completo
       - name: 📥 Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -74,13 +71,6 @@ jobs:
           # Usa un token con permisos para que los commits del bot
           # disparen otros workflows si lo necesitas
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      # ── Caché de Docker para acelerar MegaLinter ──────────
-      - name: 🐳 Cache Docker images
-        continue-on-error: true
-        uses: ScribeMD/docker-cache@fb28c93772363301b8d0a6072ce850224b73f74e # 0.5.0
-        with:
-          key: docker-${{ runner.os }}-megalinter-v7
 
       # 2. MegaLinter — el núcleo del workflow
       - name: 🧹 MegaLinter
