@@ -74,6 +74,7 @@ jobs:
           
       # ── Caché de Docker para acelerar MegaLinter ──────────
       - name: 🐳 Cache Docker images
+        continue-on-error: true
         uses: ScribeMD/docker-cache@fb28c93772363301b8d0a6072ce850224b73f74e # 0.5.0
         with:
           key: docker-${{ runner.os }}-megalinter-v7
