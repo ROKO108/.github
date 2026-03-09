@@ -63,6 +63,9 @@ jobs:
       issues: write # Para crear comentarios
 
     steps:
+      # 0. Verifica que Docker esté disponible (requisito para MegaLinter)
+      - name: 🐳 Iniciar Docker
+        run: docker info
       # 1. Checkout con historial completo
       - name: 📥 Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
